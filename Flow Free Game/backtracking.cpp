@@ -2,6 +2,9 @@
 #include <vector>
 #include <map>
 #include <queue>
+#include <set>
+#include <algorithm>
+#include <cstdlib>
 #include <time.h>
 
 using namespace std;
@@ -39,25 +42,13 @@ bool f1(int ccol, int x, int y, int ccnt, vector<vector<int>> &g, vector<int> &c
         }
     }
 
-    priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>> > pq;
     for(int i = 0; i<4; i++)
     {
         int nx = x + dx[i];
         int ny = y + dy[i];
         if(nx >= 0 && nx<g.size() && ny >= 0 && ny < g[0].size() && vis[nx][ny] == 0 &&  (g[nx][ny] == 0 || g[nx][ny] == col[ccol])){
-            pq.push( { abs(st[ccol].first - nx) + abs(st[ccol].second - ny) + abs(ed[ccol].first - nx) + abs(ed[ccol].second - ny) , i} );
-        }
-    }
-
-    while(!pq.empty())
-    {
-        auto it = pq.top();
-        pq.pop();
-
-        int i = it.second;
-        int nx = x + dx[i];
-        int ny = y + dy[i];
             if(f1(ccol, nx, ny, ccnt, g, col, st, ed)) return true;
+        }
     }
 
     totcol--;
@@ -103,11 +94,6 @@ int main()
     }
 
     int cnt = col.size();
-    // for(int i = 0; i<cnt; i++){
-    //     cout<<col[i]<<" ";
-    //     cout<<st[i].first<<' '<<st[i].second<<' ';
-    //     cout<<ed[i].first<<" "<<ed[i].second<<endl;
-    // }
 
     if(f1(0, st[0].first, st[0].second, cnt, grid, col, st, ed)){
         for(int i = 0; i<N; i++){
@@ -115,14 +101,12 @@ int main()
                 if(i == N-1 && j == N-1)
                     cout<<grid[i][j];
                 else cout<<grid[i][j]<<' ';
-
             }
         }
     }   
     else {
         cout<<"Answer not possible"<<endl;
     }
-
     // clock_t end = clock();
     // double elapsed = double(end - start) / CLOCKS_PER_SEC;
     // cout<<elapsed<<endl;
