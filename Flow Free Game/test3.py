@@ -15,7 +15,7 @@ def getContours(img, original_img):
             peri = cv2.arcLength(cnt,True)
             approx = cv2.approxPolyDP(cnt, 0.002*peri,True)
             print(area)
-            cv2.drawContours(original_img,cnt,-1,(0,255,0),3)
+            # cv2.drawContours(original_img,cnt,-1,(0,255,0),3)
             if area>max_area and len(approx)==4:
                 max_area = area
                 biggest = approx
@@ -55,16 +55,13 @@ def predict(boxes):
     return board
   
 #########################################
-
-path = "/home/ben/Code/Flow-Free-Solver-Using-OpenCV/Flow Free Game/7x7.jpg"
 height = 500
 width = 500
+path = "/home/ben/Code/Flow-Free-Solver-Using-OpenCV/Flow Free Game/5x5.jpg"
 
 img = cv2.imread(path)
 img = cv2.resize(img,(width, height))
 imgBlank = np.zeros((height,width, 3), np.uint)
-
-
 imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 imgBlur = cv2.GaussianBlur(imgGray,(3,3),0)
 _, th4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)
@@ -72,36 +69,31 @@ res = cv2.bitwise_xor(img, th4)
 imgCanny = cv2.Canny(res,50,200)
 img_copy = img.copy()
 
-imgGray_box = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-imgBlur_box = cv2.GaussianBlur(imgGray_box,(5,5),1)
-imgThreshold_box = cv2.adaptiveThreshold(imgBlur_box,255,1,1,11,2)
-
-# contours_box, heirarchy1 = cv2.findContours(imgThreshold_box, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-biggest, maxArea = getContours(imgCanny,img)
-
+biggest, maxArea = getContours(imgCanny,img_copy)
+print(biggest)
 if biggest.size!= 0:
     biggest = reorder(biggest)
+    print(biggest)
     pts1 = np.float32(biggest)
     pts2 = np.float32([[0,0],[width,0],[0,height],[width,height]])
-    cv2.drawContours(img.copy(), biggest, -1,(0,0,255),10)
+    cv2.drawContours(img_copy, biggest, -1,(0,255,0),10)
     matrix = cv2.getPerspectiveTransform(pts1,pts2)
     imgWarpColored = cv2.warpPerspective(img, matrix, (width,height))
     imgDetectedCircles = imgBlank.copy()
 
-cv2.imshow("Original", img)
+imgSolvedDigits = imgBlank.copy()
+n = 5
+boxes = splitBoxes(imgWarpColored,n)
+board = predict(boxes)
+print(board)
+bt  = open('board.txt','w')
+bt.write(str(n)+"\n")
+for i in range(len(board)):
+    bt.write(str(board[i])+" ")
+bt.close()
 
-# imgSolvedDigits = imgBlank.copy()
-# n = 7
-# boxes = splitBoxes(imgWarpColored,n)
-# cv2.imshow("Sample", boxes[0])
-# board = predict(boxes)
-# print(board)
-# bt  = open('board.txt','w')
-# bt.write(str(int(sqrt(len(board))))+"\n")
-# for i in range(len(board)):
-#     bt.write(str(board[i])+" ")
-# bt.close()
+
+cv2.imshow("Original", imgWarpColored)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()

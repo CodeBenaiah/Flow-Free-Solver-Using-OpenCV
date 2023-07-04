@@ -19,12 +19,14 @@ vector<vector<int>> vis;
 int totcol = 0;
 int dx[4] = {0, 0, 1, -1};
 int dy[4] = {1, -1, 0, 0};
-bool f1(int ccol, int x, int y, int ccnt, vector<vector<int>> &g, vector<int> &col,  vector<pair<int,int>> &st, vector<pair<int,int>> &ed)
+bool f1(int ccol, int x, int y, int ccnt, vector<vector<int>> &g, vector<int> &col, vector<pair<int, int>> &st, vector<pair<int, int>> &ed)
 {
-    if(ccol == ccnt){
-        if(totcol == g.size() * g[0].size())
+    if (ccol == ccnt)
+    {
+        if (totcol == g.size() * g[0].size())
             return true;
-        else return false;
+        else
+            return false;
     }
 
     totcol++;
@@ -32,9 +34,12 @@ bool f1(int ccol, int x, int y, int ccnt, vector<vector<int>> &g, vector<int> &c
     int prev = g[x][y];
     g[x][y] = col[ccol];
 
-    if(x == ed[ccol].first && y == ed[ccol].second){
-        if(f1(ccol + 1, st[ccol + 1].first, st[ccol + 1].second, ccnt, g, col, st, ed)) return true;
-        else {
+    if (x == ed[ccol].first && y == ed[ccol].second)
+    {
+        if (f1(ccol + 1, st[ccol + 1].first, st[ccol + 1].second, ccnt, g, col, st, ed))
+            return true;
+        else
+        {
             totcol--;
             vis[x][y] = 0;
             g[x][y] = prev;
@@ -42,12 +47,14 @@ bool f1(int ccol, int x, int y, int ccnt, vector<vector<int>> &g, vector<int> &c
         }
     }
 
-    for(int i = 0; i<4; i++)
+    for (int i = 0; i < 4; i++)
     {
         int nx = x + dx[i];
         int ny = y + dy[i];
-        if(nx >= 0 && nx<g.size() && ny >= 0 && ny < g[0].size() && vis[nx][ny] == 0 &&  (g[nx][ny] == 0 || g[nx][ny] == col[ccol])){
-            if(f1(ccol, nx, ny, ccnt, g, col, st, ed)) return true;
+        if (nx >= 0 && nx < g.size() && ny >= 0 && ny < g[0].size() && vis[nx][ny] == 0 && (g[nx][ny] == 0 || g[nx][ny] == col[ccol]))
+        {
+            if (f1(ccol, nx, ny, ccnt, g, col, st, ed))
+                return true;
         }
     }
 
@@ -62,27 +69,32 @@ int main()
 {
     // clock_t start = clock();
     setIn("board.txt");
-    setOut("output.txt");
+    setOut(".txt");
     int N;
-    cin>>N;
+    cin >> N;
     vis = vector<vector<int>>(N, vector<int>(N));
 
     vector<vector<int>> grid(N, vector<int>(N));
-    for(int i = 0; i<N; i++){
-        for(int j = 0; j<N; j++) cin>>grid[i][j];
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+            cin >> grid[i][j];
     }
 
     map<int, vector<pair<int, int>>> mp;
-    for(int i = 0; i<N; i++){
-        for(int j = 0; j<N; j++){
-            if(grid[i][j] == 0) continue;
+    for (int i = 0; i < N; i++)
+    {
+        for (int j = 0; j < N; j++)
+        {
+            if (grid[i][j] == 0)
+                continue;
             mp[grid[i][j]].push_back({i, j});
         }
     }
 
     vector<int> col;
-    vector<pair<int,int>> st, ed;
-    for(auto it : mp)
+    vector<pair<int, int>> st, ed;
+    for (auto it : mp)
     {
         int cur_col = it.first;
         auto [si, sj] = it.second[0];
@@ -95,17 +107,22 @@ int main()
 
     int cnt = col.size();
 
-    if(f1(0, st[0].first, st[0].second, cnt, grid, col, st, ed)){
-        for(int i = 0; i<N; i++){
-            for(int j = 0; j<N; j++){
-                if(i == N-1 && j == N-1)
-                    cout<<grid[i][j];
-                else cout<<grid[i][j]<<' ';
+    if (f1(0, st[0].first, st[0].second, cnt, grid, col, st, ed))
+    {
+        for (int i = 0; i < N; i++)
+        {
+            for (int j = 0; j < N; j++)
+            {
+                if (i == N - 1 && j == N - 1)
+                    cout << grid[i][j];
+                else
+                    cout << grid[i][j] << ' ';
             }
         }
-    }   
-    else {
-        cout<<"Answer not possible"<<endl;
+    }
+    else
+    {
+        cout << "Answer not possible" << endl;
     }
     // clock_t end = clock();
     // double elapsed = double(end - start) / CLOCKS_PER_SEC;
