@@ -69,7 +69,7 @@ int main()
 {
     // clock_t start = clock();
     setIn("board.txt");
-    setOut(".txt");
+    setOut("output.txt");
     int N;
     cin >> N;
     vis = vector<vector<int>>(N, vector<int>(N));

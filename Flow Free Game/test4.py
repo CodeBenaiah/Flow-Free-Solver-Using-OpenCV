@@ -60,13 +60,14 @@ def splitBoxes(img,n):
     print(box_dimension)
     return boxes
 
-col_val = [[4,249,15,1],[42,40,170,2],[0,0,254,3],[255,255,255,4],[255,255,4,5],[200,8,255,6],[82,139,161,7],[187,159,159,8],[177,41,57,9],[254,41,14,10],[127,0,129,11],[0,137,250,12],[0,141,0,13],[4,224,234,14],[129,128,0,15]]
+col_val = [[0,0,254,1],[0,141,2,2],[4,224,234,3],[254,41,14,4],[0,137,250,5]]
 
 def predict(boxes):
     board = []
     for image in boxes:
         col = (image[50,50])
         e = 0
+        print(col)
         for i in col_val:
             if i[0]==col[0] and i[1]==col[1] and i[2]==col[2]:
                 e = i[3]
@@ -74,15 +75,20 @@ def predict(boxes):
     return board
 
 def display_output(img, output,n):
-    secw = int(img.shape[1]/n)
-    sech = int(img.shape[0]/n)
-    i = 0
-    x_offset=y_offset=50
-    for x in range(0,n):
-        for y in range(0,n):
-            img[y_offset:y_offset+100, x_offset:x_offset+100] = imgdata[output[i]]
-
-
+    a = b = 25
+    k = l = 75
+    m=0
+    for i in range(0,n):
+        for j in range(0,n):
+            cv2.rectangle(img, pt1=(a,b),pt2=(k,l),color=col_val[output[m]-1],thickness=-1)
+            a +=100
+            k += 100
+            m+=1
+            print(k,l)
+        a = 25
+        k = 75
+        b+=100
+        l+=100
 
 #########################################
 height = 500
