@@ -2,9 +2,27 @@ import cv2
 from math import sqrt
 import numpy as np 
 from matplotlib import pyplot as plt
+import sys, string, os
 
 #########################################
+imgdata = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+imgdata[14] = cv2.imread("Flow Free Game/Dataset/15.png")
+imgdata[13] = cv2.imread("Flow Free Game/Dataset/14.png")
+imgdata[12] = cv2.imread("Flow Free Game/Dataset/13.png")
+imgdata[11] = cv2.imread("Flow Free Game/Dataset/12.png")
+imgdata[10] = cv2.imread("Flow Free Game/Dataset/11.png")
+imgdata[9] = cv2.imread("Flow Free Game/Dataset/10.png")
+imgdata[8] = cv2.imread("Flow Free Game/Dataset/9.png")
+imgdata[7] = cv2.imread("Flow Free Game/Dataset/8.png")
+imgdata[6] = cv2.imread("Flow Free Game/Dataset/7.png")
+imgdata[5] = cv2.imread("Flow Free Game/Dataset/6.png")
+imgdata[4] = cv2.imread("Flow Free Game/Dataset/5.png")
+imgdata[3] = cv2.imread("Flow Free Game/Dataset/4.png")
+imgdata[2] = cv2.imread("Flow Free Game/Dataset/3.png")
+imgdata[1] = cv2.imread("Flow Free Game/Dataset/2.png")
+imgdata[0] = cv2.imread("Flow Free Game/Dataset/1.png")
 
+#########################################
 def getContours(img, original_img):
     contours,hierachy = cv2.findContours(img, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
     biggest = np.array([])
@@ -38,9 +56,12 @@ def splitBoxes(img,n):
         cols = np.hsplit(r,n)
         for box in cols:
             boxes.append(box)
+    global box_dimension 
+    box_dimension = boxes[0].shape
+    print(box_dimension)
     return boxes
 
-col_val = [[4,249,15,1],[42,40,170,2],[0,0,254,3],[255,255,255,4],[255,255,4,5],[200,8,255,6],[82,139,161,7],[187,159,159,8],[177,41,57,9],[254,41,14,10],[127,0,129,11],[0,137,250,12],[0,141,0,13],[4,224,234,14],[129,128,0,15]]
+col_val = [[0,0,254,1],[0,141,2,2],[4,224,234,3],[254,41,14,4],[0,137,250,5]]
 
 def predict(boxes):
     board = []
@@ -52,10 +73,22 @@ def predict(boxes):
                 e = i[3]
         board.append(e)
     return board
-  
-def displayNumber(img, col_val):
-    secW = []
 
+def display_output(img, output,n):
+    a = b = 25
+    k = l = 75
+    m=0
+    for i in range(0,n):
+        for j in range(0,n):
+            cv2.rectangle(img, pt1=(a,b),pt2=(k,l),color=col_val[int(output[m])-1],thickness=-1)
+            a +=100
+            k += 100
+            m+=1
+        a = 25
+        k = 75
+        b+=100
+        l+=100
+    cv2.imshow("Final", imgWarpColored)
 
 #########################################
 height = 500
@@ -92,7 +125,15 @@ for i in range(len(board)):
     bt.write(str(board[i])+" ")
 bt.close()
 
+os.system("./a.out")
+
+ot = open('output.txt','r')
+data = ot.read()
+output = data.split(" ")
+print(output)
+
 cv2.imshow("Original", imgWarpColored)
+display_output(imgWarpColored,output,n)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
