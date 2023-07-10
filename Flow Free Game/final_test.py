@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import cv2
 from math import sqrt
 import numpy as np 
@@ -6,21 +7,21 @@ import sys, string, os
 
 #########################################
 imgdata = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-imgdata[14] = cv2.imread("Flow Free Game/Dataset/15.png")
-imgdata[13] = cv2.imread("Flow Free Game/Dataset/14.png")
-imgdata[12] = cv2.imread("Flow Free Game/Dataset/13.png")
-imgdata[11] = cv2.imread("Flow Free Game/Dataset/12.png")
-imgdata[10] = cv2.imread("Flow Free Game/Dataset/11.png")
-imgdata[9] = cv2.imread("Flow Free Game/Dataset/10.png")
-imgdata[8] = cv2.imread("Flow Free Game/Dataset/9.png")
-imgdata[7] = cv2.imread("Flow Free Game/Dataset/8.png")
-imgdata[6] = cv2.imread("Flow Free Game/Dataset/7.png")
-imgdata[5] = cv2.imread("Flow Free Game/Dataset/6.png")
-imgdata[4] = cv2.imread("Flow Free Game/Dataset/5.png")
-imgdata[3] = cv2.imread("Flow Free Game/Dataset/4.png")
-imgdata[2] = cv2.imread("Flow Free Game/Dataset/3.png")
-imgdata[1] = cv2.imread("Flow Free Game/Dataset/2.png")
-imgdata[0] = cv2.imread("Flow Free Game/Dataset/1.png")
+imgdata[14] = cv2.imread("Dataset/15.png")
+imgdata[13] = cv2.imread("Dataset/14.png")
+imgdata[12] = cv2.imread("Dataset/13.png")
+imgdata[11] = cv2.imread("Dataset/12.png")
+imgdata[10] = cv2.imread("Dataset/11.png")
+imgdata[9] = cv2.imread("Dataset/10.png")
+imgdata[8] = cv2.imread("Dataset/9.png")
+imgdata[7] = cv2.imread("Dataset/8.png")
+imgdata[6] = cv2.imread("Dataset/7.png")
+imgdata[5] = cv2.imread("Dataset/6.png")
+imgdata[4] = cv2.imread("Dataset/5.png")
+imgdata[3] = cv2.imread("Dataset/4.png")
+imgdata[2] = cv2.imread("Dataset/3.png")
+imgdata[1] = cv2.imread("Dataset/2.png")
+imgdata[0] = cv2.imread("Dataset/1.png")
 
 #########################################
 def getContours(img, original_img):
@@ -36,6 +37,7 @@ def getContours(img, original_img):
             if area>max_area and len(approx)==4:
                 max_area = area
                 biggest = approx
+    cv2.imshow("OG", original_img)
     return biggest, max_area
 
 def reorder(points):
@@ -75,8 +77,8 @@ def predict(boxes):
     return board
 
 def display_output(img, output,n):
-    a = b = 25
-    k = l = 75
+    a = b = 0
+    k = l = 100
     m=0
     for i in range(0,n):
         for j in range(0,n):
@@ -84,8 +86,8 @@ def display_output(img, output,n):
             a +=100
             k += 100
             m+=1
-        a = 25
-        k = 75
+        a = 0
+        k = 100
         b+=100
         l+=100
     cv2.imshow("Final", imgWarpColored)
@@ -99,15 +101,17 @@ img = cv2.imread(path)
 img = cv2.resize(img,(width, height))
 imgBlank = np.zeros((height,width, 3), np.uint)
 imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-imgBlur = cv2.GaussianBlur(imgGray,(3,3),0)
+imgBlur = cv2.GaussianBlur(imgGray,(5,5),1)
 _, th4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)
 res = cv2.bitwise_xor(img, th4)
 imgCanny = cv2.Canny(res,100,200)
 img_copy = img.copy()
 
 biggest, maxArea = getContours(imgCanny,img_copy)
+print(maxArea)
 if biggest.size!= 0:
     biggest = reorder(biggest)
+    print(biggest)
     pts1 = np.float32(biggest)
     pts2 = np.float32([[0,0],[width,0],[0,height],[width,height]])
     cv2.drawContours(img_copy, biggest, -1,(0,255,0),10)
