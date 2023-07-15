@@ -37,7 +37,7 @@ def getContours(img, original_img):
             if area>max_area and len(approx)==4:
                 max_area = area
                 biggest = approx
-    cv2.imshow("OG", original_img)
+    # cv2.imshow("OG", original_img)
     return biggest, max_area
 
 def reorder(points):
