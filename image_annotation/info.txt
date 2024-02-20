@@ -1,0 +1,4 @@
+├── image_annotation/
+│   ├── __init__.py              # Initialization file for the image annotation module
+│   └── annotator.py             # Module for annotating the original image with the solution
+│`

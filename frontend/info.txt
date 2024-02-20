@@ -1,0 +1,8 @@
+├── frontend/
+│   ├── public/                  # Public assets for the frontend (e.g., HTML, CSS, JS)
+│   │   ├── index.html           # HTML file for the frontend website
+│   │   ├── style.css            # CSS file for styling
+│   │   └── script.js            # JavaScript file for frontend functionality (e.g., image upload)
+│   ├── src/                     # Frontend source code (if using a build tool like webpack)
+│   └── package.json             # Node.js package.json file for frontend dependencies
+│

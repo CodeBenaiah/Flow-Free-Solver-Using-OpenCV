@@ -1,0 +1,4 @@
+├── data_preprocessing/
+│   ├── __init__.py              # Initialization file for the data preprocessing module
+│   ├── preprocess.py            # Module for preprocessing the uploaded image
+│   └── grid_converter.py        # Module for converting the image grid to a 2D matrix

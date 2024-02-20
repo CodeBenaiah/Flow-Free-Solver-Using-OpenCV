@@ -1,0 +1,5 @@
+├── dataset/
+│   ├── raw_images/               # Directory for raw screenshots
+│   │   ├── screenshot1.png      # Example raw screenshot 1
+│   │   ├── screenshot2.png      # Example raw screenshot 2
+│   │   └── ...

@@ -1,0 +1,5 @@
+├── ml_decision_trees/
+│   ├── __init__.py              # Initialization file for the ML decision trees module
+│   ├── decision_tree_model.py   # Python module for the ML decision trees model
+│   └── requirements.txt         # Python dependencies for ML model
+│

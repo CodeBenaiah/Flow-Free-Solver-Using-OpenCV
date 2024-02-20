@@ -1,0 +1,4 @@
+│   ├── solution_matrices/        # Directory for solution 2D matrices
+│   │   ├── matrix1_solution.txt # Example solution matrix 1
+│   │   ├── matrix2_solution.txt # Example solution matrix 2
+│   │   └── ...

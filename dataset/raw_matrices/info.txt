@@ -1,0 +1,4 @@
+│   ├── raw_matrices/             # Directory for raw 2D matrices
+│   │   ├── matrix1_raw.txt      # Example raw matrix 1
+│   │   ├── matrix2_raw.txt      # Example raw matrix 2
+│   │   └── ...
