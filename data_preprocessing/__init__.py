@@ -1,6 +1,6 @@
 import os
 from optparse import OptionParser
-from .grid_extractor import GridConverter
+from .grid_extractor import GridExtractor
 
 def process_images_in_folder(folder_path):
     """
@@ -19,8 +19,10 @@ def process_images_in_folder(folder_path):
     for image_file in image_files:
         image_path = os.path.join(folder_path, image_file)
         print(f"Processing {image_path}")
-        grid_converter = GridConverter(image_path)
-        grid_converter.detect_and_convert_grid()
+        grid_converter = GridExtractor(image_path)
+        grid_converter.preprocess_image()
+        extracted_img = grid_converter.extract_grid()
+        grid_converter.save_grid(extracted_img)
 
 if __name__ == "__main__":
     parser = OptionParser()

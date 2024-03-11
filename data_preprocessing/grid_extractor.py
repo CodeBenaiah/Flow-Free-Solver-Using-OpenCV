@@ -21,7 +21,6 @@ class GridExtractor:
         self.width, self.height = 500, 500
         self.image_path = image_path
         self.raw_image = cv.imread(image_path)  
-        self.raw_image = cv.resize(self.raw_image,(self.width, self.height))
         self.preprocessed_image = self.preprocess_image()
     
     def preprocess_image(self) -> np.ndarray:
@@ -30,9 +29,10 @@ class GridExtractor:
         Returns:
             numpy.ndarray: The preprocessed image.
         """
-        _, thresholded_image = cv.threshold(self.raw_image, 127, 255, cv.THRESH_TOZERO)
-        manipulated_image = cv.bitwise_xor(self.raw_image, thresholded_image)
-        canny_image = cv.Canny(manipulated_image, 100, 200)
+        # img_grayscale = cv.cvtColor(self.raw_image, cv.COLOR_BGR2GRAY)
+        # img_blur = cv.GaussianBlur(img_grayscale, (5,5),1)
+        # thresholded_image = cv.adaptiveThreshold(img_blur, 255, 1, 1, 11, 2)
+        canny_image = cv.Canny(self.raw_image, 100, 200)
         return canny_image
     
     def reorder(self, points):
@@ -76,6 +76,7 @@ class GridExtractor:
         """
         largest_contour = self.find_largest_contour(self.preprocessed_image)
         if largest_contour is not None:
+            largest_contour = self.reorder(largest_contour)
             pts1 = np.float32(largest_contour)
             pts2 = np.float32([[0, 0], [self.width, 0], [0, self.height], [self.width, self.height]])
             matrix = cv.getPerspectiveTransform(pts1, pts2)

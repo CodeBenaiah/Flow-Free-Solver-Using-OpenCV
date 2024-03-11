@@ -5,32 +5,13 @@ import numpy as np
 from matplotlib import pyplot as plt
 import sys, string, os
 
-#########################################
-imgdata = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-imgdata[14] = cv2.imread("Dataset/15.png")
-imgdata[13] = cv2.imread("Dataset/14.png")
-imgdata[12] = cv2.imread("Dataset/13.png")
-imgdata[11] = cv2.imread("Dataset/12.png")
-imgdata[10] = cv2.imread("Dataset/11.png")
-imgdata[9] = cv2.imread("Dataset/10.png")
-imgdata[8] = cv2.imread("Dataset/9.png")
-imgdata[7] = cv2.imread("Dataset/8.png")
-imgdata[6] = cv2.imread("Dataset/7.png")
-imgdata[5] = cv2.imread("Dataset/6.png")
-imgdata[4] = cv2.imread("Dataset/5.png")
-imgdata[3] = cv2.imread("Dataset/4.png")
-imgdata[2] = cv2.imread("Dataset/3.png")
-imgdata[1] = cv2.imread("Dataset/2.png")
-imgdata[0] = cv2.imread("Dataset/1.png")
-
-#########################################
 def getContours(img, original_img):
     contours,hierachy = cv2.findContours(img, cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_NONE)
     biggest = np.array([])
     max_area = 0
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        if area>60000:
+        if area>50:
             peri = cv2.arcLength(cnt,True)
             approx = cv2.approxPolyDP(cnt, 0.002*peri,True)
             cv2.drawContours(original_img,cnt,-1,(0,255,0),3)
@@ -96,19 +77,26 @@ def display_output(img, output,n):
 #########################################
 height = 500
 width = 500
-path = "/home/ben/Code/Flow-Free-Solver-Using-OpenCV/Flow Free Game/5x5.jpg"
+path = "/home/ben/Code/Flow-Free-Solver/dataset/raw_images/Screenshots/Screenshot_20240219-155917.png"
 
 img = cv2.imread(path)
-img = cv2.resize(img,(width, height))
-imgBlank = np.zeros((height,width, 3), np.uint)
+# img = cv2.resize(img,(width, height))
+# imgBlank = np.zeros((height,width, 3), np.uint)
 imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 imgBlur = cv2.GaussianBlur(imgGray,(5,5),1)
-_, th4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)
-res = cv2.bitwise_xor(img, th4)
-imgCanny = cv2.Canny(res,100,200)
+imgthreshold = cv2.adaptiveThreshold(imgBlur, 255, 1,1,11,2)
+imgcontour= img.copy()
+imgbigcontour = img.copy()
+contours, hierarchy = cv2.findContours(imgthreshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+# cv2.imshow('test', imgGray)
+# cv2.drawContours(imgcontour, contours, -1,(0,255,0),3)
+# _, th4 = cv2.threshold(imgBlur, 127, 255, cv2.THRESH_TOZERO)
+# res = cv2.bitwise_xor(img, th4)
+imgCanny = cv2.Canny(img,100,200)
 img_copy = img.copy()
 
 biggest, maxArea = getContours(imgCanny,img_copy)
+# cv2.imshow('Canny', img_copy)
 print(maxArea)
 if biggest.size!= 0:
     biggest = reorder(biggest)
@@ -118,28 +106,28 @@ if biggest.size!= 0:
     cv2.drawContours(img_copy, biggest, -1,(0,255,0),10)
     matrix = cv2.getPerspectiveTransform(pts1,pts2)
     imgWarpColored = cv2.warpPerspective(img, matrix, (width,height))
-    imgDetectedCircles = imgBlank.copy()
+    # imgDetectedCircles = imgBlank.copy()
 
-imgWarpColored = cv2.imread("5x5 Warped.png")
-imgSolvedDigits = imgBlank.copy()
-n = 5
-boxes = splitBoxes(imgWarpColored,n)
-board = predict(boxes)
-bt  = open('board.txt','w')
-bt.write(str(n)+"\n")
-for i in range(len(board)):
-    bt.write(str(board[i])+" ")
-bt.close()
+# imgWarpColored = cv2.imread("5x5 Warped.png")
+# imgSolvedDigits = imgBlank.copy()
+# n = 5
+# boxes = splitBoxes(imgWarpColored,n)
+# board = predict(boxes)
+# bt  = open('board.txt','w')
+# bt.write(str(n)+"\n")
+# for i in range(len(board)):
+#     bt.write(str(board[i])+" ")
+# bt.close()
 
-os.system("./a.out")
+# os.system("./a.out")
 
-ot = open('output.txt','r')
-data = ot.read()
-output = data.split(" ")
-print(output)
+# ot = open('output.txt','r')
+# data = ot.read()
+# output = data.split(" ")
+# print(output)
 
 cv2.imshow("Original", imgWarpColored)
-display_output(imgWarpColored,output,n)
+# display_output(imgWarpColored,output,n)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()

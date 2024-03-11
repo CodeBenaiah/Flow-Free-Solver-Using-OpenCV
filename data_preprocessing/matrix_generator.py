@@ -21,7 +21,7 @@ def predict(boxes):
         for i in col_val:
             if i[0]==col[0] and i[1]==col[1] and i[2]==col[2]:
                 e = i[3]
-        board.append(e
+        board.append(e)
 
 imgWarpColored = cv2.imread("5x5 Warped.png")
 imgSolvedDigits = imgBlank.copy()
