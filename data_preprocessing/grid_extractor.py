@@ -94,7 +94,7 @@ class GridExtractor:
         """
         if grid_image is not None:
             file_name = os.path.basename(self.image_path)
-            output_dir = os.path.join(os.path.dirname(__file__), "..", "dataset", "raw_matrices", file_name)
+            output_dir = os.path.join(os.path.dirname(__file__), "..", "dataset", "raw_matrices", "Image", file_name)
             cv.imwrite(output_dir, grid_image)
             print(f"Grid extracted and saved successfully as {file_name}.")
         else:
