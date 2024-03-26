@@ -1,15 +1,16 @@
 import cv2 as cv
 import json
 import numpy as np
-from math import sqrt
+import math
 import os
 
 class MatrixGenerator:
     """Class for generating a matrix from an image."""
 
-    def __init__(self) -> None:
+    def __init__(self, image_path) -> None:
         """Initialize the MatrixGenerator."""
         self.colors_dataset = self.load_color_dataset()
+        self.image_path = image_path
 
     def load_color_dataset(self) -> dict:
         """Load the color dataset from a JSON file.
@@ -29,30 +30,45 @@ class MatrixGenerator:
             print(f"Error: Invalid JSON format in color dataset file at {color_dataset_path}.")
             return {}
 
-    def size_calculator(self, image) -> int:
+    def size_calculator(self, image) -> tuple:
         """Calculate the size of the matrix based on the image.
 
         Args:
             image (numpy.ndarray): The input image.
 
         Returns:
-            int: The size of the matrix.
+            tuple: A tuple containing the number of rows and columns in the matrix.
         """
-        imgGray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
-        imgCanny = cv.Canny(image, 100, 200)
+        edges = cv.Canny(image, 50, 150, apertureSize=3)
+        lines = cv.HoughLines(edges, 1, np.pi / 180, 100)
 
-        contours, _ = cv.findContours(imgCanny, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+        if lines is None:
+            print("Error detecting lines. Model Failed")
+            return 0, 0
 
-        min_area = float('inf')
-        for cnt in contours:
-            area = cv.contourArea(cnt)
-            if 10 < area < min_area:
-                min_area = area
+        vertical_lines = []
+        horizontal_lines = []
 
-        n = int(sqrt(250000 / min_area))
-        return n
-        
-    def split_boxes(self, image, n) -> list:
+        for line in lines:
+            rho, theta = line[0]
+            a = np.cos(theta)
+            b = np.sin(theta)
+            x0 = a * rho
+            y0 = b * rho
+
+            if np.isclose(theta, 0) or np.isclose(theta, np.pi):
+                if not any(abs(x0 - x) < 10 for x in vertical_lines):
+                    vertical_lines.append(x0)
+            elif np.isclose(theta, np.pi / 2) or np.isclose(theta, 3 * np.pi / 2):
+                if not any(abs(y0 - y) < 10 for y in horizontal_lines):
+                    horizontal_lines.append(y0)
+
+        num_rows = len(vertical_lines) - 1
+        num_cols = len(horizontal_lines) - 1
+
+        return num_rows, num_cols
+
+    def split_boxes(self, image, n,m) -> list:
         """Split the image into boxes.
 
         Args:
@@ -62,10 +78,10 @@ class MatrixGenerator:
         Returns:
             list: List of boxes containing parts of the image.
         """
-        rows = np.vsplit(image, n)
+        rows = np.array_split(image, n, axis=0)
         boxes = []
         for r in rows:
-            cols = np.hsplit(r, n)
+            cols = np.array_split(r, m, axis=1)
             for box in cols:
                 boxes.append(box)
         return boxes
@@ -82,6 +98,7 @@ class MatrixGenerator:
         board = []
         for image in boxes:
             color = image[50, 50]  # Get color at the center of the box
+            print(color)
             matched_color = self.match_color(color)
             if matched_color is not None:
                 board.append(matched_color)
@@ -99,7 +116,7 @@ class MatrixGenerator:
         for key, val in self.colors_dataset.items():
             if np.array_equal(color, val):
                 return int(key)
-        return -1
+        return 0
 
     def save_matrix(self, image) -> None:
         """Save the generated matrix to a text file.
@@ -107,10 +124,14 @@ class MatrixGenerator:
         Args:
             image (numpy.ndarray): The input image.
         """
-        n = self.size_calculator(image)
-        boxes = self.split_boxes(image, n)
+        n,m = self.size_calculator(image)
+        boxes = self.split_boxes(image, n,m)
         board = self.predict(boxes)
-        name, _ = os.path.splitext(image)
-        with open(f"{name}.txt", 'w') as file:
+        file_name = os.path.basename(self.image_path)
+        name, _ = os.path.splitext(file_name)
+        output_path = os.path.join(os.path.dirname(__file__), "..", "dataset", "raw_matrices", "txt", name+"txt")
+        with open(output_path, 'w') as file:
             file.write(str(n) + "\n")
             file.write(" ".join(str(cell) for cell in board))
+            print(f"Matrix Extracted and successfully saved at {name}.")
+            file.close()

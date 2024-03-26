@@ -1,6 +1,7 @@
 import os
 from optparse import OptionParser
 from .grid_extractor import GridExtractor
+from .matrix_generator import MatrixGenerator
 
 def process_images_in_folder(folder_path):
     """
@@ -15,14 +16,19 @@ def process_images_in_folder(folder_path):
     if not image_files:
         print("No image files found in the folder.")
         return
-
+    
     for image_file in image_files:
-        image_path = os.path.join(folder_path, image_file)
-        print(f"Processing {image_path}")
-        grid_converter = GridExtractor(image_path)
-        grid_converter.preprocess_image()
-        extracted_img = grid_converter.extract_grid()
-        grid_converter.save_grid(extracted_img)
+        try:
+            image_path = os.path.join(folder_path, image_file)
+            print(f"Processing {image_path}")
+            grid_converter = GridExtractor(image_path)
+            grid_converter.preprocess_image()
+            extracted_img = grid_converter.extract_grid()
+            grid_converter.save_grid(extracted_img)
+            matrix_generator = MatrixGenerator(image_path)
+            matrix_generator.save_matrix(extracted_img)
+        except Exception:
+            print("Error faced: ", Exception)
 
 if __name__ == "__main__":
     parser = OptionParser()
