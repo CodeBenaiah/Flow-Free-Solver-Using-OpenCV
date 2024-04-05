@@ -11,7 +11,7 @@ def getContours(img, original_img):
     max_area = 0
     for cnt in contours:
         area = cv2.contourArea(cnt)
-        if area>50:
+        if area>60000:
             peri = cv2.arcLength(cnt,True)
             approx = cv2.approxPolyDP(cnt, 0.002*peri,True)
             cv2.drawContours(original_img,cnt,-1,(0,255,0),3)
@@ -77,26 +77,19 @@ def display_output(img, output,n):
 #########################################
 height = 500
 width = 500
-path = "/home/ben/Code/Flow-Free-Solver/dataset/raw_images/Screenshots/Screenshot_20240219-155917.png"
+path = "/home/ben/Code/Flow-Free-Solver/dataset/raw_matrices/Image/Screenshot_20240219-155935.png"
 
 img = cv2.imread(path)
-# img = cv2.resize(img,(width, height))
-# imgBlank = np.zeros((height,width, 3), np.uint)
+img = cv2.resize(img,(width, height))
+imgBlank = np.zeros((height,width, 3), np.uint)
 imgGray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 imgBlur = cv2.GaussianBlur(imgGray,(5,5),1)
-imgthreshold = cv2.adaptiveThreshold(imgBlur, 255, 1,1,11,2)
-imgcontour= img.copy()
-imgbigcontour = img.copy()
-contours, hierarchy = cv2.findContours(imgthreshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-# cv2.imshow('test', imgGray)
-# cv2.drawContours(imgcontour, contours, -1,(0,255,0),3)
-# _, th4 = cv2.threshold(imgBlur, 127, 255, cv2.THRESH_TOZERO)
-# res = cv2.bitwise_xor(img, th4)
-imgCanny = cv2.Canny(img,100,200)
+_, th4 = cv2.threshold(img, 127, 255, cv2.THRESH_TOZERO)
+res = cv2.bitwise_xor(img, th4)
+imgCanny = cv2.Canny(res,100,200)
 img_copy = img.copy()
 
 biggest, maxArea = getContours(imgCanny,img_copy)
-# cv2.imshow('Canny', img_copy)
 print(maxArea)
 if biggest.size!= 0:
     biggest = reorder(biggest)
@@ -106,28 +99,29 @@ if biggest.size!= 0:
     cv2.drawContours(img_copy, biggest, -1,(0,255,0),10)
     matrix = cv2.getPerspectiveTransform(pts1,pts2)
     imgWarpColored = cv2.warpPerspective(img, matrix, (width,height))
-    # imgDetectedCircles = imgBlank.copy()
+    imgDetectedCircles = imgBlank.copy()
 
-# imgWarpColored = cv2.imread("5x5 Warped.png")
-# imgSolvedDigits = imgBlank.copy()
-# n = 5
-# boxes = splitBoxes(imgWarpColored,n)
-# board = predict(boxes)
-# bt  = open('board.txt','w')
-# bt.write(str(n)+"\n")
-# for i in range(len(board)):
-#     bt.write(str(board[i])+" ")
-# bt.close()
+image_path = sys.argv[1]
+imgWarpColored = cv2.imread(image_path)
+imgSolvedDigits = imgBlank.copy()
+n = 5
+boxes = splitBoxes(imgWarpColored,n)
+board = predict(boxes)
+bt  = open('board.txt','w')
+bt.write(str(n)+"\n")
+for i in range(len(board)):
+    bt.write(str(board[i])+" ")
+bt.close()
 
-# os.system("./a.out")
+os.system("./a.out")
 
-# ot = open('output.txt','r')
-# data = ot.read()
-# output = data.split(" ")
-# print(output)
+ot = open('output.txt','r')
+data = ot.read()
+output = data.split(" ")
+print(output)
 
 cv2.imshow("Original", imgWarpColored)
-# display_output(imgWarpColored,output,n)
+display_output(imgWarpColored,output,n)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()

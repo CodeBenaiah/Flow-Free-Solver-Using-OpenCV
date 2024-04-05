@@ -151,7 +151,7 @@ class MatrixGenerator:
         name, _ = os.path.splitext(file_name)
         output_path = os.path.join(os.path.dirname(__file__), "..", "dataset", "raw_matrices", "txt", name+"txt")
         with open(output_path, 'w') as file:
-            file.write(str(n) + "\n")
+            file.write(str(n)+" "+str(m)+"\n")
             file.write(" ".join(str(cell) for cell in board))
             print(f"Matrix Extracted and successfully saved at {name}.")
             file.close()
