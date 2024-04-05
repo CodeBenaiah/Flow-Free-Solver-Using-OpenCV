@@ -3,32 +3,36 @@ import json
 import numpy as np
 import math
 import os
+from collections import defaultdict
 
 class MatrixGenerator:
     """Class for generating a matrix from an image."""
 
     def __init__(self, image_path) -> None:
         """Initialize the MatrixGenerator."""
-        self.colors_dataset = self.load_color_dataset()
+        self.colors_dataset = defaultdict(list)
         self.image_path = image_path
 
-    def load_color_dataset(self) -> dict:
+    def load_color_dataset(self, colors) -> dict:
         """Load the color dataset from a JSON file.
 
         Returns:
             dict: A dictionary containing color data.
         """
-        color_dataset_path = "/home/ben/Code/Flow-Free-Solver/dataset/colors/dataset.json"
-        try:
-            with open(color_dataset_path, 'r') as file:
-                colors_dataset = json.load(file)
-            return colors_dataset
-        except FileNotFoundError:
-            print(f"Error: Color dataset file not found at {color_dataset_path}.")
-            return {}
-        except json.JSONDecodeError:
-            print(f"Error: Invalid JSON format in color dataset file at {color_dataset_path}.")
-            return {}
+        while colors:
+            temp = colors[0]
+            min_distance = 99999
+            min_color = None
+            for color in colors[1:]:
+                temp_distance = [abs(c1 - c2) for c1, c2 in zip(temp, color)]
+                distance = sum(temp_distance)
+                if distance < min_distance:
+                    min_distance = distance
+                    min_color = color
+
+            self.colors_dataset[len(self.colors_dataset) + 1] = [temp, min_color]
+            colors.remove(temp)
+            colors.remove(min_color)
 
     def size_calculator(self, image) -> tuple:
         """Calculate the size of the matrix based on the image.
@@ -80,11 +84,20 @@ class MatrixGenerator:
         """
         rows = np.array_split(image, n, axis=0)
         boxes = []
+        color_list = []
+
         for r in rows:
             cols = np.array_split(r, m, axis=1)
             for box in cols:
+                b, g, r = cv.split(box)
+                max_r = np.max(r)
+                max_g = np.max(g)
+                max_b = np.max(b)
+                if not(max_r < 125 and max_g < 125 and max_b < 125):
+                    color_list.append([max_r, max_g, max_b])
                 boxes.append(box)
-        return boxes
+
+        return boxes, color_list
 
     def predict(self, boxes) -> list:
         """Predict the values for each box.
@@ -97,11 +110,16 @@ class MatrixGenerator:
         """
         board = []
         for image in boxes:
-            color = image[50, 50]  # Get color at the center of the box
-            print(color)
-            matched_color = self.match_color(color)
-            if matched_color is not None:
+            b, g, r = cv.split(image)
+            max_r = np.max(r)
+            max_g = np.max(g)
+            max_b = np.max(b)
+            if max_r < 150 and max_g < 150 and max_b < 150:
+                board.append(0)
+            else:
+                matched_color = self.match_color([max_r, max_g, max_b])
                 board.append(matched_color)
+                
         return board
 
     def match_color(self, color) -> int:
@@ -113,9 +131,10 @@ class MatrixGenerator:
         Returns:
             int: The matched color value.
         """
-        for key, val in self.colors_dataset.items():
-            if np.array_equal(color, val):
-                return int(key)
+        for key,val in self.colors_dataset.items():
+            if color in val:
+                return key
+        
         return 0
 
     def save_matrix(self, image) -> None:
@@ -125,7 +144,8 @@ class MatrixGenerator:
             image (numpy.ndarray): The input image.
         """
         n,m = self.size_calculator(image)
-        boxes = self.split_boxes(image, n,m)
+        boxes, color_list = self.split_boxes(image, n,m)
+        self.load_color_dataset(color_list)
         board = self.predict(boxes)
         file_name = os.path.basename(self.image_path)
         name, _ = os.path.splitext(file_name)
