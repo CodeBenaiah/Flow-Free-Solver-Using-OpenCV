@@ -1,130 +1,121 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <queue>
-#include <set>
 #include <algorithm>
-#include <cstdlib>
-#include <time.h>
-
+#include <cstdio>
 using namespace std;
 
-inline namespace FileIO
-{
-    void setIn(string s) { freopen(s.c_str(), "r", stdin); }
-    void setOut(string s) { freopen(s.c_str(), "w", stdout); }
+// Namespace for file input/output operations
+namespace FileIO {
+    void setInputFile(const char* fileName) {
+        freopen(fileName, "r", stdin);
+    }
+
+    void setOutputFile(const string& fileName) {
+        freopen(fileName.c_str(), "w", stdout);
+    }
 }
 
-vector<vector<int>> vis;
-int totcol = 0;
-int dx[4] = {0, 0, 1, -1};
-int dy[4] = {1, -1, 0, 0};
-bool f1(int ccol, int x, int y, int ccnt, vector<vector<int>> &g, vector<int> &col, vector<pair<int, int>> &st, vector<pair<int, int>> &ed)
-{
-    if (ccol == ccnt)
-    {
-        if (totcol == g.size() * g[0].size())
+// 2D vector to keep track of visited cells
+vector<vector<bool>> visited;
+
+// Total number of cells filled
+int totalCellsFilled = 0;
+
+// Movement directions (row, col)
+const int dx[4] = {0, 0, 1, -1};
+const int dy[4] = {1, -1, 0, 0};
+
+// Helper function to solve the grid
+bool solvePuzzle(int currentColor, int row, int col, int colorCount, vector<vector<int>>& grid, const vector<int>& colors, const vector<pair<int, int>>& startPositions, const vector<pair<int, int>>& endPositions) {
+    if (currentColor == colorCount) {
+        // All colors have been placed
+        return totalCellsFilled == grid.size() * grid[0].size();
+    }
+
+    totalCellsFilled++;
+    visited[row][col] = true;
+    int prevValue = grid[row][col];
+    grid[row][col] = colors[currentColor];
+
+    if (row == endPositions[currentColor].first && col == endPositions[currentColor].second) {
+        // Current cell is the end position for the current color
+        if (solvePuzzle(currentColor + 1, startPositions[currentColor + 1].first, startPositions[currentColor + 1].second, colorCount, grid, colors, startPositions, endPositions)) {
             return true;
-        else
-            return false;
-    }
-
-    totcol++;
-    vis[x][y] = 1;
-    int prev = g[x][y];
-    g[x][y] = col[ccol];
-
-    if (x == ed[ccol].first && y == ed[ccol].second)
-    {
-        if (f1(ccol + 1, st[ccol + 1].first, st[ccol + 1].second, ccnt, g, col, st, ed))
-            return true;
-        else
-        {
-            totcol--;
-            vis[x][y] = 0;
-            g[x][y] = prev;
-            return false;
         }
-    }
-
-    for (int i = 0; i < 4; i++)
-    {
-        int nx = x + dx[i];
-        int ny = y + dy[i];
-        if (nx >= 0 && nx < g.size() && ny >= 0 && ny < g[0].size() && vis[nx][ny] == 0 && (g[nx][ny] == 0 || g[nx][ny] == col[ccol]))
-        {
-            if (f1(ccol, nx, ny, ccnt, g, col, st, ed))
-                return true;
-        }
-    }
-
-    totcol--;
-    vis[x][y] = 0;
-    g[x][y] = prev;
-
-    return false;
-}
-
-int main()
-{
-    // clock_t start = clock();
-    setIn("board.txt");
-    setOut("output.txt");
-    int N;
-    cin >> N;
-    vis = vector<vector<int>>(N, vector<int>(N));
-
-    vector<vector<int>> grid(N, vector<int>(N));
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-            cin >> grid[i][j];
-    }
-
-    map<int, vector<pair<int, int>>> mp;
-    for (int i = 0; i < N; i++)
-    {
-        for (int j = 0; j < N; j++)
-        {
-            if (grid[i][j] == 0)
-                continue;
-            mp[grid[i][j]].push_back({i, j});
-        }
-    }
-
-    vector<int> col;
-    vector<pair<int, int>> st, ed;
-    for (auto it : mp)
-    {
-        int cur_col = it.first;
-        auto [si, sj] = it.second[0];
-        auto [di, dj] = it.second[1];
-
-        col.push_back(cur_col);
-        st.push_back({si, sj});
-        ed.push_back({di, dj});
-    }
-
-    int cnt = col.size();
-
-    if (f1(0, st[0].first, st[0].second, cnt, grid, col, st, ed))
-    {
-        for (int i = 0; i < N; i++)
-        {
-            for (int j = 0; j < N; j++)
-            {
-                if (i == N - 1 && j == N - 1)
-                    cout << grid[i][j];
-                else
-                    cout << grid[i][j] << ' ';
+    } else {
+        // Try placing the current color in adjacent cells
+        for (int i = 0; i < 4; i++) {
+            int newRow = row + dx[i];
+            int newCol = col + dy[i];
+            if (newRow >= 0 && newRow < grid.size() && newCol >= 0 && newCol < grid[0].size() && !visited[newRow][newCol] && (grid[newRow][newCol] == 0 || grid[newRow][newCol] == colors[currentColor])) {
+                if (solvePuzzle(currentColor, newRow, newCol, colorCount, grid, colors, startPositions, endPositions)) {
+                    return true;
+                }
             }
         }
     }
-    else
-    {
+
+    // Backtrack: Restore the previous value and mark the cell as unvisited
+    totalCellsFilled--;
+    visited[row][col] = false;
+    grid[row][col] = prevValue;
+    return false;
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        cout << "Usage: <path_to_input_file>" << endl;
+        return -1;
+    }
+
+    FileIO::setInputFile(argv[1]);
+    FileIO::setOutputFile("./dataset/solution_matrices/output.txt");
+
+    int rows, cols;
+    cin >> rows >> cols;
+    visited = vector<vector<bool>>(rows, vector<bool>(cols, false));
+    vector<vector<int>> grid(rows, vector<int>(cols));
+
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            cin >> grid[i][j];
+        }
+    }
+
+    // Map to store the start and end positions for each color
+    map<int, vector<pair<int, int>>> colorPositions;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            if (grid[i][j] != 0) {
+                colorPositions[grid[i][j]].push_back({i, j});
+            }
+        }
+    }
+
+    vector<int> colors;
+    vector<pair<int, int>> startPositions, endPositions;
+    for (const auto& [color, positions] : colorPositions) {
+        colors.push_back(color);
+        startPositions.push_back(positions[0]);
+        endPositions.push_back(positions[1]);
+    }
+
+    int colorCount = colors.size();
+
+    if (solvePuzzle(0, startPositions[0].first, startPositions[0].second, colorCount, grid, colors, startPositions, endPositions)) {
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (i == rows - 1 && j == cols - 1) {
+                    cout << grid[i][j];
+                } else {
+                    cout << grid[i][j] << ' ';
+                }
+            }
+        }
+    } else {
         cout << "Answer not possible" << endl;
     }
-    // clock_t end = clock();
-    // double elapsed = double(end - start) / CLOCKS_PER_SEC;
-    // cout<<elapsed<<endl;
+
+    return 0;
 }
