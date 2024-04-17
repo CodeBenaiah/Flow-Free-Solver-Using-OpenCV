@@ -1,10 +1,12 @@
-import cv2
 import json
-import numpy as np
 import math
 import os
 from collections import defaultdict
-from typing import List, Tuple, Dict, Optional
+from typing import Dict, List, Optional, Tuple
+
+import cv2
+import numpy as np
+
 
 class MatrixGenerator:
     """
@@ -25,7 +27,9 @@ class MatrixGenerator:
         self.colors_dataset = defaultdict(list)
         self.image_path = image_path
 
-    def load_color_dataset(self, colors: List[Tuple[int, int, int]]) -> Dict[int, List[Tuple[int, int, int]]]:
+    def load_color_dataset(
+        self, colors: List[Tuple[int, int, int]]
+    ) -> Dict[int, List[Tuple[int, int, int]]]:
         """
         Load the color dataset from a list of RGB color tuples.
 
@@ -37,7 +41,7 @@ class MatrixGenerator:
         """
         while colors:
             temp_color = colors[0]
-            min_distance = float('inf')
+            min_distance = float("inf")
             min_color = None
             for color in colors[1:]:
                 temp_distance = sum(abs(c1 - c2) for c1, c2 in zip(temp_color, color))
@@ -91,7 +95,9 @@ class MatrixGenerator:
 
         return num_rows, num_cols
 
-    def split_boxes(self, image: np.ndarray, num_rows: int, num_cols: int) -> Tuple[List[np.ndarray], List[Tuple[int, int, int]]]:
+    def split_boxes(
+        self, image: np.ndarray, num_rows: int, num_cols: int
+    ) -> Tuple[List[np.ndarray], List[Tuple[int, int, int]]]:
         """
         Split the input image into boxes and extract the dominant colors.
 
@@ -110,12 +116,11 @@ class MatrixGenerator:
         for row in rows:
             cols = np.array_split(row, num_cols, axis=1)
             for box in cols:
-                b, g, r = cv2.split(box)
-                max_r = np.max(r)
-                max_g = np.max(g)
-                max_b = np.max(b)
-                if not (max_r < 125 and max_g < 125 and max_b < 125):
-                    color_list.append((max_r, max_g, max_b))
+                width, height, _ = box.shape
+                b, g, r = box[width // 2, height // 2]
+                print(b, g, r)
+                if b > 100 or g > 100 or r > 100:
+                    color_list.append([b, g, r])
                 boxes.append(box)
 
         return boxes, color_list
@@ -132,15 +137,14 @@ class MatrixGenerator:
         """
         board = []
         for image in boxes:
-            b, g, r = cv2.split(image)
-            max_r = np.max(r)
-            max_g = np.max(g)
-            max_b = np.max(b)
-            if max_r < 150 and max_g < 150 and max_b < 150:
-                board.append(0)
-            else:
-                matched_color = self.match_color((max_r, max_g, max_b))
+            width, height, _ = image.shape
+            b, g, r = image[width // 2, height // 2]
+            print(b, g, r)
+            if b > 100 or g > 100 or r > 100:
+                matched_color = self.match_color([b, g, r])
                 board.append(matched_color)
+            else:
+                board.append(0)
 
         return board
 
@@ -160,7 +164,9 @@ class MatrixGenerator:
 
         return None
 
-    def save_matrix(self, image: np.ndarray) -> Tuple[Dict[int, List[Tuple[int, int, int]]], int, int]:
+    def save_matrix(
+        self, image: np.ndarray
+    ) -> Tuple[Dict[int, List[Tuple[int, int, int]]], int, int]:
         """
         Save the generated matrix to a text file.
 
@@ -174,12 +180,20 @@ class MatrixGenerator:
         boxes, color_list = self.split_boxes(image, num_rows, num_cols)
         colors_dataset = self.load_color_dataset(color_list)
         board = self.predict(boxes)
+        print(board)
         file_name = os.path.basename(self.image_path)
         name, _ = os.path.splitext(file_name)
-        output_path = os.path.join(os.path.dirname(__file__), "..", "dataset", "raw_matrices", "txt", name + ".txt")
-        with open(output_path, 'w') as file:
+        output_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "dataset",
+            "raw_matrices",
+            "txt",
+            name + ".txt",
+        )
+        with open(output_path, "w") as file:
             file.write(f"{num_rows} {num_cols}\n")
             file.write(" ".join(str(cell) for cell in board))
             print(f"Matrix Extracted and successfully saved at {name}.txt")
 
-        return colors_dataset, num_rows, num_cols
+        return colors_dataset, num_rows, num_cols, output_path

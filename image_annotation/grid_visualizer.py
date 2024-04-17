@@ -1,7 +1,9 @@
-import cv2
 import os
-import numpy
 from typing import List, Tuple
+
+import cv2
+import numpy
+
 
 class Visualizer:
     """
@@ -15,7 +17,14 @@ class Visualizer:
         col_size (int): The number of columns in the grid.
     """
 
-    def __init__(self, color_dataset: List[Tuple[int, int, int]], image: numpy.ndarray, row_size: int, col_size: int, image_path: str) -> None:
+    def __init__(
+        self,
+        color_dataset: List[Tuple[int, int, int]],
+        image: numpy.ndarray,
+        row_size: int,
+        col_size: int,
+        image_path: str,
+    ) -> None:
         """
         Initialize the Visualizer instance.
 
@@ -32,6 +41,8 @@ class Visualizer:
         self.row_size = row_size
         self.col_size = col_size
         self.image_path = image_path
+        for key, val in self.color_dataset.items():
+            print(key, val[0])
 
     def _read_solution(self) -> List[int]:
         """
@@ -40,7 +51,7 @@ class Visualizer:
         Returns:
             List[int]: A list of integers representing the solution.
         """
-        with open('solution_algorithm/output.txt', 'r') as solution_file:
+        with open("dataset/solution_matrices/output.txt", "r") as solution_file:
             data = solution_file.read()
             return [int(x) for x in data.split()]
 
@@ -51,7 +62,7 @@ class Visualizer:
         rect_width = self.grid_image.shape[1] // self.col_size
         rect_height = self.grid_image.shape[0] // self.row_size
         solution_idx = 0
-
+        print(self.solution)
         for row in range(self.row_size):
             row_start = row * rect_height
             row_end = row_start + rect_height
@@ -59,9 +70,14 @@ class Visualizer:
             for col in range(self.col_size):
                 col_start = col * rect_width
                 col_end = col_start + rect_width
-
-                rect_color = self.color_dataset[self.solution[solution_idx] - 1]
-                cv2.rectangle(self.grid_image, (col_start, row_start), (col_end, row_end), rect_color, -1)
+                b, g, r = map(int, self.color_dataset[self.solution[solution_idx]][0])
+                cv2.rectangle(
+                    self.grid_image,
+                    pt1=(col_start, row_start),
+                    pt2=(col_end, row_end),
+                    color=(b, g, r),
+                    thickness=-1,
+                )
                 solution_idx += 1
 
     def save_image(self, output_dir: str) -> None:

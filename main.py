@@ -1,54 +1,68 @@
 """
-Get the image
-extract grid -> returns grid
-extract matrix -> returns board 
-extract solution matrix -> return solved board
-send it to visualizer -> returns annotated image
+This module provides a pipeline for processing image files and generating annotated images.
 
+The pipeline consists of the following steps:
+1. Extract the grid from the input image
+2. Generate a matrix representation of the grid
+3. Solve the grid problem using an external algorithm
+4. Visualize the solution on the input image
+
+The module can be executed from the command line, and it expects the path to the input image file as an argument.
 """
 
 import os
 from optparse import OptionParser
-from .data_preprocessing import GridExtractor
-from .data_preprocessing import MatrixGenerator
-from .image_annotation import Visualizer
+from typing import Tuple
 
-def process_images_in_folder(folder_path):
+from data_preprocessing import GridExtractor, MatrixGenerator
+from image_annotation import Visualizer
+
+
+def process_image(image_path: str) -> None:
     """
-    Process all image files in the specified folder.
+    Process the given image file and generate an annotated image with the solution.
 
     Args:
-        folder_path (str): The path to the folder containing image files.
-    """
-    files = os.listdir(folder_path)
-    image_files = [file for file in files if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        image_path (str): The path to the input image file.
 
-    if not image_files:
-        print("No image files found in the folder.")
-        return
-    
-    for image_file in image_files:
-        try:
-            image_path = os.path.join(folder_path, image_file)
-            print(f"Processing {image_path}")
-            grid_converter = GridExtractor(image_path)
-            grid_converter.preprocess_image()
-            extracted_img = grid_converter.extract_grid()
-            grid_converter.save_grid(extracted_img)
-            matrix_generator = MatrixGenerator(image_path)
-            color_dataset, row_size, col_size = matrix_generator.save_matrix(extracted_img)
-            os.system("./solution_algorithm/a.out")
-            visualizer = Visualizer(color_dataset, extracted_img, row_size, col_size)
-            visualizer.display_output()
-        except Exception:
-            print("Error faced: ", Exception)
+    Raises:
+        Exception: If an error occurs during the processing pipeline.
+    """
+    try:
+        print(f"Processing {image_path}")
+
+        # Extract the grid from the input image
+        grid_extractor = GridExtractor(image_path)
+        extracted_grid = grid_extractor.extract_grid()
+        grid_extractor.save_grid(extracted_grid)
+
+        # Generate the matrix representation of the grid
+        matrix_generator = MatrixGenerator(image_path)
+        color_dataset, num_rows, num_cols, output_path = matrix_generator.save_matrix(
+            extracted_grid
+        )
+        backtracking_cmd = "./solution_algorithm/a.out " + output_path
+        # Solve the grid problem using an external algorithm
+        print(f"Running backtracking {backtracking_cmd}")
+        os.system(backtracking_cmd)
+        print("Completed solution")
+        # Visualize the solution on the input image
+        visualizer = Visualizer(
+            color_dataset, extracted_grid, num_rows, num_cols, image_path
+        )
+        visualizer.display_output()
+        visualizer.save_image(os.path.dirname("dataset/solved_images"))
+
+    except Exception as e:
+        print(f"Error faced: {e}")
+
 
 if __name__ == "__main__":
     parser = OptionParser()
-    parser.add_option("-f", "--folder", dest="folder_path", help="Path to the folder containing image files")
-    (options, args) = parser.parse_args()
+    parser.add_option("-p", "--path", dest="image_path", help="Path to the image file")
+    options, _ = parser.parse_args()
 
-    if not options.folder_path:
-        parser.error("Path to the folder containing image files is required. Use -f or --folder option.")
+    if not options.image_path:
+        parser.error("Path to the image file is required. Use -p or --path option.")
 
-    process_images_in_folder(options.folder_path)
+    process_image(options.image_path)
